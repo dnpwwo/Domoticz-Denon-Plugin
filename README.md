@@ -5,14 +5,13 @@ Controls a single amplifier on your network.  If you have more than one you can 
 
 ## Key Features
 
-* Creates four Domoticz devices per Kodi
-  1. Basic status indicator, On/Off. Also has icon for Kodi Remote popup.
-  2. Selector switch for content source: Video, Music, TV Shows, Live TV.
-  3. Volume level.  Icon mutes/unmutes, slider shows/sets volume.
-  4. Playing indicator: Icon Pauses/Resumes, slider shows/sets percentage through media.
-* Ships with 3 different, user selectable, icons sets: Default, Black and Round.
-* Will send onscreen notifications to the Kodi if a Notifier name is specified.
-* When network connectivity is lost the Domoticz UI will optionally show the device(s) with Red banner
+* Creates three Domoticz devices per amplifier
+  1. Basic power indicator, On/Off.
+  2. Main Zone selector switch for sources, these should match the source names from the documentation that you want to use.
+  3. Main Volume level.  Icon mutes/unmutes, slider shows/sets volume.
+* Devices for additional zones added automatically if detected
+* When network connectivity is lost the Domoticz UI will show the device(s) with a red banner
+* Amplifier is optionally auto-discovered on the network.
 
 ## Installation
 
@@ -30,12 +29,12 @@ In the web UI, navigate to the Hardware page.  In the hardware dropdown there wi
 
 | Field | Information|
 | ----- | ---------- |
-| IP Address | Will handle DNS names and IP V4 addresses (e.g 192.168.xxx.xxx) |
-| Port | The port that the Kodi is listening on. Default 9090, will work unless you specifically changed it on your Kodi.  Do not set this to 80 or 8080. The plugin does not use a web interface on the Kodi |
-| Icon | Dropdown to allow icon set selection |
-| Notifications | If true it will send notifications to the Kodi that will popup on the screen |
-| Notifier Name | Only used if 'Notifications' is true. This name will appear in the list of notification targets when you use the 'Notifications' Button. Notifications you send to this target will appear on screen |
-| Time Out Lost Devices | When true, the devices in Domoitcz will have a red banner when network connectivity is lost to the Kodi |
+| Port | The port that the amplifier is listening on. Default 23 (Telnet) |
+| Auto-Detect| Dropdown that controls device discovery. If True the Discovery Match field is used, if False the IP Address field is used |
+| IP Address | Will handle DNS names and IP V4 addresses (e.g 192.168.xxx.xxx) if not auto-detecting |
+| Discovery Match | SSDP attribute match to use if auto-detecting |
+| Startup Delay | Time to wait before sending commands when turning on, default 4 seconds|
+| Sources | Amplifier source names that are to be used in the Sources selector switches. Selector switch names can be changed after the device is created to something meaningful and the plugin will map back to the values in this field |
 | Debug | When true the logging level will be much higher to aid with troubleshooting |
 
 ## Change log
