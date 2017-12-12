@@ -18,12 +18,19 @@ Controls a single amplifier on your network.  If you have more than one you can 
 Python version 3.4 or higher required & Domoticz version 3.7xxx or greater.
 
 To install:
-* Go in your Domoticz directory, open the plugins directory and create a new one named 'Denon' or similar.
+* Go in your Domoticz directory, open the plugins directory.
 * Navigate to the directory using a command line
-* Run: ```git pull https://github.com/dnpwwo/Domoticz-Denon-Plugin.git```
+* Run: ```git clone https://github.com/dnpwwo/Domoticz-Denon-Plugin.git```
 * Restart Domoticz.
 
 In the web UI, navigate to the Hardware page.  In the hardware dropdown there will be an entry called "Denon/Marantz Amplifier".
+
+## Updating
+
+To update:
+* Go in your Domoticz directory using a command line and open the plugins directory then the Domoticz-Denon-Plugin directory.
+* Run: ```git pull```
+* Restart Domoticz.
 
 ## Configuration
 
