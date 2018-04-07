@@ -6,7 +6,7 @@
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.2.1" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.2.2" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -150,7 +150,7 @@ class BasePlugin:
             if (Connection.Name == "Beacon"):
                 dictAMXB = DecodeDDDMessage(strData)
                 if (strData.find(Parameters["Mode2"]) >= 0):
-                    self.DenonConn = None
+                    self.DenonConn.Disconnect()
                     self.DenonConn = Domoticz.Connection(Name="Telnet", Transport="TCP/IP", Protocol="Line", Address=Connection.Address, Port=Parameters["Port"])
                     self.DenonConn.Connect()
                     try:
