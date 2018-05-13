@@ -51,3 +51,4 @@ To update:
 | 3.2.0 | Initial upload version |
 | 3.2.1 | Uplift debugging |
 | 3.2.2 | Explicitly disconnect UDP socket when Denon is discovered |
+| 3.2.3 | Explicitly disconnect UDP socket when Denon is discovery times out |

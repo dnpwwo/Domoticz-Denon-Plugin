@@ -6,7 +6,7 @@
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.2.2" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.2.3" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -363,6 +363,7 @@ class BasePlugin:
                 
             if (self.oustandingPings > 5):
                 Domoticz.Error(self.DenonConn.Name+" has not responded to 5 pings, terminating connection.")
+                self.DenonConn.Disconnect()
                 self.DenonConn = None
                 self.powerOn = False
                 self.oustandingPings = -1
