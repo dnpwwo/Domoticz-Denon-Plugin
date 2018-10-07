@@ -6,7 +6,7 @@
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.2.3" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.2.5" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -120,7 +120,6 @@ class BasePlugin:
             self.selectorMap[dictValue] = item
             dictValue = dictValue + 10
 
-        self.handleConnect()
         return
 
     def onConnect(self, Connection, Status, Description):
@@ -150,7 +149,7 @@ class BasePlugin:
             if (Connection.Name == "Beacon"):
                 dictAMXB = DecodeDDDMessage(strData)
                 if (strData.find(Parameters["Mode2"]) >= 0):
-                    self.DenonConn.Disconnect()
+                    self.DenonConn = None
                     self.DenonConn = Domoticz.Connection(Name="Telnet", Transport="TCP/IP", Protocol="Line", Address=Connection.Address, Port=Parameters["Port"])
                     self.DenonConn.Connect()
                     try:
@@ -361,9 +360,10 @@ class BasePlugin:
                 self.DenonConn.Send(self.pollingDict[self.lastMessage])
                 Domoticz.Debug("onHeartbeat: self.lastMessage "+self.lastMessage+", Sending '"+self.pollingDict[self.lastMessage][0:2]+"'.")
                 
-            if (self.oustandingPings > 5):
-                Domoticz.Error(self.DenonConn.Name+" has not responded to 5 pings, terminating connection.")
-                self.DenonConn.Disconnect()
+            if (self.oustandingPings > 10):
+                Domoticz.Error(self.DenonConn.Name+" has not responded to 10 pings, terminating connection.")
+                if (self.DenonConn.Connected()):
+                    self.DenonConn.Disconnect()
                 self.DenonConn = None
                 self.powerOn = False
                 self.oustandingPings = -1
