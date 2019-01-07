@@ -53,3 +53,4 @@ To update:
 | 3.2.2 | Explicitly disconnect UDP socket when Denon is discovered |
 | 3.2.3 | Explicitly disconnect UDP socket when Denon is discovery times out |
 | 3.2.5 | Improve UDP listener close |
+| 3.3.0 | Will add device for analog tuner preset.
