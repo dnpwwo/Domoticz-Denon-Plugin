@@ -6,7 +6,7 @@
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.2.5" name="Denon/Marantz Amplifier" author="dnpwwo" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.3.1" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -65,24 +65,29 @@ class BasePlugin:
     mainOn = False
     mainSource = 0
     mainVolume1 = 0
-    
+    preset = 0
+
     zone2On = False
     zone2Source = 0
     zone2Volume = 0
-    
+
     zone3On = False
     zone3Source = 0
     zone3Volume = 0
 
     ignoreMessages = "|SS|SV|SD|MS|PS|CV|SY|TP|"
     selectorMap = {}
-    pollingDict =  {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"PW?\r" }
+    pollingDict =  {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"TPAN?\r","TPAN":"PW?\r" }
     lastMessage = "PW"
     lastHeartbeat = datetime.datetime.now()
 
     SourceOptions = {}
-    
+    presetOptions = {}
+    presetMap ={}
+    tunerId =-1
+
     def onStart(self):
+
         if Parameters["Mode6"] != "0":
             Domoticz.Debugging(int(Parameters["Mode6"]))
 
@@ -90,7 +95,12 @@ class BasePlugin:
                              'LevelNames': Parameters["Mode4"],
                              'LevelOffHidden': 'false',
                              'SelectorStyle': '1'}
-            
+
+        self.presetOptions = {'LevelActions': '|34',
+                        'LevelNames': '|Off|1|2|3|4|5|6|7|8|9|10|11|12|13|14|15|16|17|18|19|20|21|22|23|24|25|26|27|28|29|30|31|32|33',
+                        'LevelOffHidden': 'false',
+                        'SelectorStyle': '1'}
+
         if (len(Devices) == 0):
             Domoticz.Device(Name="Power", Unit=1, TypeName="Switch",  Image=5).Create()
             Domoticz.Device(Name="Main Zone", Unit=2, TypeName="Selector Switch", Switchtype=18, Image=5, Options=self.SourceOptions).Create()
@@ -111,18 +121,34 @@ class BasePlugin:
                 self.zone3On = (Devices[6].nValue != 0)
             if (7 in Devices and (len(Devices[7].sValue) > 0)):
                 self.zone3Volume = int(Devices[7].sValue) if (Devices[7].nValue != 0) else int(Devices[7].sValue)*-1
+            if (8 in Devices and (len(Devices[8].sValue) > 0)):
+                self.preset = int(Devices[8].sValue)
             if (1 in Devices):
                 self.powerOn = (self.mainOn or self.zone2On or self.zone3On)
-                
+
         DumpConfigToLog()
         dictValue=0
         for item in Parameters["Mode4"].split('|'):
             self.selectorMap[dictValue] = item
+            if(item=="TUNER"):
+               self.tunerId=dictValue
+               Domoticz.Log("Tuner device found. "+str(self.tunerId))
+            dictValue = dictValue + 10   
+            
+        # if a tuner is in the channel list check if tuner device exists
+        if ((8 not in Devices) and (tunerId!=-1)):
+            Domoticz.Device(Name="Tuner", Unit=8, TypeName="Selector Switch", Switchtype=18, Image=5, Options=self.Options).Create()
+            Domoticz.Log("Tuner device added.")
+             
+        dictValue=0
+        for item in range(33):
+            self.presetMap[dictValue] = "{:0>2d}".format(item)
             dictValue = dictValue + 10
 
         return
 
     def onConnect(self, Connection, Status, Description):
+        Domoticz.Log("Connecting") 
         if (Connection == self.DenonConn):
             if (Status == 0):
                 Domoticz.Log("Connected successfully to: "+Connection.Address+":"+Connection.Port)
@@ -165,6 +191,7 @@ class BasePlugin:
             else:
                 strData = strData.strip()
                 action = strData[0:2]
+                action2= strData[0:4]
                 detail = strData[2:]
                 if (action in self.pollingDict): self.lastMessage = action
 
@@ -192,6 +219,11 @@ class BasePlugin:
                     if (detail == "ON"):         self.mainVolume1 = abs(self.mainVolume1)*-1
                     elif (detail == "OFF"):      self.mainVolume1 = abs(self.mainVolume1)
                     else: Domoticz.Debug("Unknown: Action "+action+", Detail '"+detail+"' ignored.")
+                elif (action2 == "TPAN"):      # Tuner preset
+                    detail2= strData[4:]
+                    for key, value in self.presetMap.items(): 
+                        if (detail2 == str(value)):    self.preset = key
+                    Domoticz.Debug("TPAN received. Key: "+str(self.preset)+", Detail "+detail2)
                 elif (action == "Z2"):      # Zone 2
                     # Zone 2 response, make sure we have Zone 2 devices in Domoticz and they are polled
                     if (4 not in Devices):
@@ -201,8 +233,7 @@ class BasePlugin:
                     if (5 not in Devices):
                         Domoticz.Device(Name="Volume 2", Unit=5, Type=244, Subtype=73, Switchtype=7, Image=8).Create()
                     if ("Z2" not in self.pollingDict):
-                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"PW?\r" }
-
+                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"TPAN?\r","TPAN":"PW?\r" }
                     if (detail == "ON"):
                         self.zone2On = True
                     elif (detail == "OFF"):
@@ -225,8 +256,8 @@ class BasePlugin:
                     if (7 not in Devices):
                         Domoticz.Device(Name="Volume 3", Unit=7, Type=244, Subtype=73, Switchtype=7, Image=8).Create()
                     if ("Z3" not in self.pollingDict):
-                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"Z3?\r", "Z3":"PW?\r" }
-                        
+                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"Z3?\r", "Z3":"TPAN?\r","TPAN":"PW?\r" }
+
                     if (detail == "ON"):
                         self.zone3On = True
                     elif (detail == "OFF"):
@@ -343,7 +374,19 @@ class BasePlugin:
                 self.DenonConn.Send(Message='Z3'+str(Level)+'\r', Delay=delay)
             elif (action == "Off"):
                 self.DenonConn.Send(Message='Z3MUON\r', Delay=delay)
-
+        elif (Unit == 8):   # Tuner preset 
+            if (action == "Off"):
+                self.DenonConn.Send(Message='ZMOFF\r', Delay=delay)
+            else:    
+                if (self.powerOn == False): 
+                    self.DenonConn.Send(Message='PWON\r')
+                    delay +=1
+                if(self.mainSource!=self.tunerId):
+                    self.DenonConn.Send(Message='SITUNER\r', Delay=delay)
+                    delay += 1
+                channel=self.presetMap[Level]
+                Domoticz.Debug("Send message to denon TPAN str "+channel)
+                self.DenonConn.Send(Message='TPAN'+channel+'\r', Delay=delay)
         return
 
     def onDisconnect(self, Connection):
@@ -359,7 +402,7 @@ class BasePlugin:
             if (self.DenonConn.Name == "Telnet") and (self.DenonConn.Connected()):
                 self.DenonConn.Send(self.pollingDict[self.lastMessage])
                 Domoticz.Debug("onHeartbeat: self.lastMessage "+self.lastMessage+", Sending '"+self.pollingDict[self.lastMessage][0:2]+"'.")
-                
+
             if (self.oustandingPings > 10):
                 Domoticz.Error(self.DenonConn.Name+" has not responded to 10 pings, terminating connection.")
                 if (self.DenonConn.Connected()):
@@ -380,7 +423,7 @@ class BasePlugin:
         else:
             self.DenonConn = Domoticz.Connection(Name="Telnet", Transport="TCP/IP", Protocol="Line", Address=Parameters["Address"], Port=Parameters["Port"])
             self.DenonConn.Connect()
-    
+
     def SyncDevices(self, TimedOut):
         if (self.powerOn == False):
             UpdateDevice(1, 0, "Off", TimedOut)
@@ -390,6 +433,7 @@ class BasePlugin:
             UpdateDevice(5, 0, str(abs(self.zone2Volume)), TimedOut)
             UpdateDevice(6, 0, "0", TimedOut)
             UpdateDevice(7, 0, str(abs(self.zone3Volume)), TimedOut)
+            UpdateDevice(8, 0, "0", TimedOut)
         else:
             UpdateDevice(1, 1, "On", TimedOut)
             UpdateDevice(2, self.mainSource if self.mainOn else 0, str(self.mainSource if self.mainOn else 0), TimedOut)
@@ -401,8 +445,9 @@ class BasePlugin:
             UpdateDevice(6, self.zone3Source if self.zone3On else 0, str(self.zone3Source if self.zone3On else 0), TimedOut)
             if (self.zone3Volume <= 0 or self.zone3On == False): UpdateDevice(7, 0, str(abs(self.zone3Volume)), TimedOut)
             else: UpdateDevice(7, 2, str(self.zone3Volume), TimedOut)
+            UpdateDevice(8, self.preset if self.mainOn else 0, str(self.preset if self.mainOn else 0), TimedOut) 
         return
-        
+
 global _plugin
 _plugin = BasePlugin()
 
