@@ -54,5 +54,6 @@ To update:
 | 3.2.2 | Explicitly disconnect UDP socket when Denon is discovered |
 | 3.2.3 | Explicitly disconnect UDP socket when Denon is discovery times out |
 | 3.2.5 | Improve UDP listener close |
-| 3.3.0 | Aaded device for selecting analog tuner preset.
-| 3.3.1 | Fixed small bug when selecting tuner preset and source channel was not on tuner. 
+| 3.3.0 | Aaded device for selecting analog tuner preset. |
+| 3.3.1 | Fixed small bug when selecting tuner preset and source channel was not on tuner. |
+| 3.3.2 | Bugfix: Tuner id in onStart |

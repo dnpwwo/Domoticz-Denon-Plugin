@@ -1,12 +1,12 @@
 #
 #       Denon AVR 4306 Plugin
 #
-#       Author:     Dnpwwo, 2016 - 2017
+#       Author:     Dnpwwo, 2016 - 2019
 #
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.3.1" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.3.2" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -136,7 +136,7 @@ class BasePlugin:
             dictValue = dictValue + 10   
             
         # if a tuner is in the channel list check if tuner device exists
-        if ((8 not in Devices) and (tunerId!=-1)):
+        if ((8 not in Devices) and (self.tunerId!=-1)):
             Domoticz.Device(Name="Tuner", Unit=8, TypeName="Selector Switch", Switchtype=18, Image=5, Options=self.Options).Create()
             Domoticz.Log("Tuner device added.")
              
