@@ -6,7 +6,7 @@
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.3.2" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.3.4" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -130,14 +130,14 @@ class BasePlugin:
         dictValue=0
         for item in Parameters["Mode4"].split('|'):
             self.selectorMap[dictValue] = item
-            if(item=="TUNER"):
+            if(item.upper()=="TUNER"):
                self.tunerId=dictValue
-               Domoticz.Log("Tuner device found. "+str(self.tunerId))
+               Domoticz.Debug("Tuner device found. "+str(self.tunerId))
             dictValue = dictValue + 10   
             
         # if a tuner is in the channel list check if tuner device exists
         if ((8 not in Devices) and (self.tunerId!=-1)):
-            Domoticz.Device(Name="Tuner", Unit=8, TypeName="Selector Switch", Switchtype=18, Image=5, Options=self.Options).Create()
+            Domoticz.Device(Name="Tuner", Unit=8, TypeName="Selector Switch", Switchtype=18, Image=5, Options=self.presetOptions).Create()
             Domoticz.Log("Tuner device added.")
              
         dictValue=0
@@ -282,6 +282,10 @@ class BasePlugin:
 
     def onCommand(self, Unit, Command, Level, Hue):
         Domoticz.Log("onCommand called for Unit " + str(Unit) + ": Parameter '" + str(Command) + "', Level: " + str(Level))
+
+        if (self.DenonConn == None):
+            Domoticz.Error("Command ignored, Amplifier is not connected.")
+            return
 
         Command = Command.strip()
         action, sep, params = Command.partition(' ')

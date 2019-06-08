@@ -57,3 +57,4 @@ To update:
 | 3.3.0 | Aaded device for selecting analog tuner preset. |
 | 3.3.1 | Fixed small bug when selecting tuner preset and source channel was not on tuner. |
 | 3.3.2 | Bugfix: Tuner id in onStart |
+| 3.3.4 | Bugfix: Tuner device create throwing error in onStart |
