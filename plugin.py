@@ -1,12 +1,12 @@
 #
 #       Denon AVR 4306 Plugin
 #
-#       Author:     Dnpwwo, 2016 - 2019
+#       Author:     Dnpwwo, 2016 - 2023
 #
 #   Mode4 ("Sources") needs to have '|' delimited names of sources that the Denon knows about.  The Selector can be changed afterwards to any  text and the plugin will still map to the actual Denon name.
 #
 """
-<plugin key="Denon4306" version="3.3.4" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
+<plugin key="Denon4306" version="3.4.0" name="Denon/Marantz Amplifier" author="dnpwwo,bvr" wikilink="" externallink="http://www.denon.co.uk/uk">
     <description>
 Denon (& Marantz) AVR Plugin.<br/><br/>
 &quot;Sources&quot; need to have '|' delimited names of sources that the Denon knows about from the technical manual.<br/>
@@ -77,8 +77,8 @@ class BasePlugin:
 
     ignoreMessages = "|SS|SV|SD|MS|PS|CV|SY|TP|"
     selectorMap = {}
-    pollingDict =  {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"TPAN?\r","TPAN":"PW?\r" }
-    lastMessage = "PW"
+    pollingDict =  {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"PW?\r" }  # Assume no tuner, is tested for in onStart
+    lastMessage = -1
     lastHeartbeat = datetime.datetime.now()
 
     SourceOptions = {}
@@ -133,6 +133,7 @@ class BasePlugin:
             if(item.upper()=="TUNER"):
                self.tunerId=dictValue
                Domoticz.Debug("Tuner device found. "+str(self.tunerId))
+               self.pollingDict =  {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"TPAN?\r", 5:"PW?\r" }
             dictValue = dictValue + 10   
             
         # if a tuner is in the channel list check if tuner device exists
@@ -193,7 +194,6 @@ class BasePlugin:
                 action = strData[0:2]
                 action2= strData[0:4]
                 detail = strData[2:]
-                if (action in self.pollingDict): self.lastMessage = action
 
                 if (action == "PW"):        # Power Status
                     if (detail == "STANDBY"):
@@ -233,7 +233,10 @@ class BasePlugin:
                     if (5 not in Devices):
                         Domoticz.Device(Name="Volume 2", Unit=5, Type=244, Subtype=73, Switchtype=7, Image=8).Create()
                     if ("Z2" not in self.pollingDict):
-                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"TPAN?\r","TPAN":"PW?\r" }
+                        if ("TPAN" in self.pollingDict):
+                            self.pollingDict = {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"Z2?\r", 5:"TPAN?\r", 6:"PW?\r" }
+                        else:
+                            self.pollingDict = {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"Z2?\r", 5:"PW?\r" }
                     if (detail == "ON"):
                         self.zone2On = True
                     elif (detail == "OFF"):
@@ -256,7 +259,10 @@ class BasePlugin:
                     if (7 not in Devices):
                         Domoticz.Device(Name="Volume 3", Unit=7, Type=244, Subtype=73, Switchtype=7, Image=8).Create()
                     if ("Z3" not in self.pollingDict):
-                        self.pollingDict = {"PW":"ZM?\r", "ZM":"SI?\r", "SI":"MV?\r", "MV":"MU?\r", "MU":"Z2?\r", "Z2":"Z3?\r", "Z3":"TPAN?\r","TPAN":"PW?\r" }
+                        if ("TPAN" in self.pollingDict):
+                            self.pollingDict = {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"Z2?\r", 5:"Z3?\r", 6:"TPAN?\r", 7:"PW?\r" }
+                        else:
+                            self.pollingDict = {0:"ZM?\r", 1:"SI?\r", 2:"MV?\r", 3:"MU?\r", 4:"Z2?\r", 5:"Z3?\r", 6:"PW?\r" }
 
                     if (detail == "ON"):
                         self.zone3On = True
@@ -404,8 +410,10 @@ class BasePlugin:
             self.handleConnect()
         else:
             if (self.DenonConn.Name == "Telnet") and (self.DenonConn.Connected()):
+                self.lastMessage = self.lastMessage + 1
+                if (self.lastMessage >= len(self.pollingDict)): self.lastMessage = 0
                 self.DenonConn.Send(self.pollingDict[self.lastMessage])
-                Domoticz.Debug("onHeartbeat: self.lastMessage "+self.lastMessage+", Sending '"+self.pollingDict[self.lastMessage][0:2]+"'.")
+                Domoticz.Debug("onHeartbeat: Sending '"+str(self.pollingDict[self.lastMessage])+"'.")
 
             if (self.oustandingPings > 10):
                 Domoticz.Error(self.DenonConn.Name+" has not responded to 10 pings, terminating connection.")

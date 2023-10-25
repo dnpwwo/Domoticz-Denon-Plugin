@@ -58,3 +58,4 @@ To update:
 | 3.3.1 | Fixed small bug when selecting tuner preset and source channel was not on tuner. |
 | 3.3.2 | Bugfix: Tuner id in onStart |
 | 3.3.4 | Bugfix: Tuner device create throwing error in onStart |
+| 3.4.0 | Uplifted to handle AVC-X3800H by fixing underlying issues:  Polling and Tuner handling
